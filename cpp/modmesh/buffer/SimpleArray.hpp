@@ -725,6 +725,42 @@ public:
         }
     }
 
+    A matmul(A const & other) const
+    {
+        auto athis = static_cast<A const *>(this);
+
+        if (athis->ndim() != 2 || other.ndim() != 2)
+        {
+            throw std::runtime_error("SimpleArray::matmul(): both arrays must be 2-dimensional");
+        }
+
+        const size_t m = athis->shape(0);
+        const size_t k = athis->shape(1);
+        const size_t n = other.shape(1);
+
+        if (k != other.shape(0))
+        {
+            throw std::runtime_error("SimpleArray::matmul(): incompatible dimensions for matrix multiplication");
+        }
+
+        shape_type result_shape{m, n};
+        A result(result_shape);
+        result.fill(static_cast<value_type>(0));
+
+        for (size_t i = 0; i < m; ++i)
+        {
+            for (size_t j = 0; j < n; ++j)
+            {
+                for (size_t l = 0; l < k; ++l)
+                {
+                    result(i, j) += athis->operator()(i, l) * other(l, j);
+                }
+            }
+        }
+
+        return result;
+    }
+
 private:
     static void find_two_bins(const uint32_t * freq, size_t n, int & bin1, int & bin2);
 }; /* end class SimpleArrayMixinCalculators */
